@@ -1,3 +1,9 @@
+/*----------------------------------------------
+ * Author: Hazel Nguyen
+ * Date: December 6th, 2024
+ * Description: Prints information about total 
+ * blocks, memory used, etc.
+ ---------------------------------------------*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -10,17 +16,62 @@
 #define BUFFER 5
 #define LOOP 10
 
+/**
+ * Chunk struct. Contains size, the used amount of memory, and a ptr to the 
+ * next in the list. 
+*/
 struct chunk {
   int size;
   int used;
   struct chunk *next;
 };
 
+/**
+ * Print total number of memory blocks associated with malloc (currently in use
+ * & free), along with the amount of underutilised memory as a %.
+ * @param freelist the freelist in memory
+ * @param buffer the used memory list
+ * @param len the length of the buffer  
+*/
 void memstats(struct chunk* freelist, void* buffer[], int len) {
+  int total = 0; //total blocks
+  int memory = 0; //total memory 
+  int usedBlocks = 0; 
+  int freeBlocks = 0;
+  int usedMemory = 0; 
+  int freeMemory = 0;
+  int used = 0; //used allocated memory 
+
+  while (freelist != NULL) { //from freelist
+    total++;
+    freeBlocks++;
+    memory += freelist->size; //add to total memory
+    freeMemory += freelist->size;
+    freelist = freelist->next; //increment freelist 
+  }
+
+  for (int i = 0; i < len; i++) { //from buffer
+    if (buffer[i] != NULL) {
+      struct chunk* ptr = (struct chunk*)((struct chunk*) buffer[i] - 1); //sentinel
+      total++;
+      usedBlocks++;
+      memory += ptr->size; //add to total memory
+      used += ptr->size;
+      usedMemory += ptr->used;
+    }
+  }
+
+  float underutilised = 1 - (float)usedMemory/used;
+  printf("Total blocks: %d Freed blocks: %d Used blocks: %d\nTotal memory allocated: %d Free memory: %d Used memory: %d\nUnderutilised memory: %.2f\n", 
+      total, freeBlocks, usedBlocks, memory, freeMemory, used, underutilised);  
 }
 
-int main ( int argc, char* argv[]) {
-
+/**
+ * Main method.
+ * @param argc the number of arguments 
+ * @param argv the command line arguments
+*/
+int main (int argc, char* argv[]) {
   printf("Starting test..\n");
 
   srand(100);
